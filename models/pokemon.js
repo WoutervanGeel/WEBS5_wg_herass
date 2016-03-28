@@ -2,7 +2,6 @@ function init(mongoose)
 {
     var Schema = mongoose.Schema;
     
-    console.log('Initializing pokemon schema');
     var typeSchema = new Schema
     ({
         slot: 
@@ -49,6 +48,7 @@ function init(mongoose)
             type: [moveSchema]
         }
     });
+    
     mongoose.model('Pokemon', pokemonSchema);
 };
 

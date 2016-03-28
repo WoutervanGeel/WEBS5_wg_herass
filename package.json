@@ -31,6 +31,7 @@
   "devDependencies": {
     "chai": "^2.1.2",
     "mocha": "^2.2.1",
+    "mockgoose": "^5.4.1",
     "supertest": "^0.15.0"
   }
 }

@@ -7,30 +7,24 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 
 // Data Access Layer
-mongoose.connect('mongodb://localhost:27017/pokemonapi');
+mongoose.connect('mongodb://tjleeuwe1:Avans2016@ds013559.mlab.com:13559/pokemonapi');
 // /Data Access Layer
 
 // Models
 require('./models/pokemon')(mongoose);
 // /Models
 
-function handleError(req, res, statusCode, message)
-{
-    console.log();
-    console.log('-------- Error handled --------');
-    console.log('Request Params: ' + JSON.stringify(req.params));
-    console.log('Request Body: ' + JSON.stringify(req.body));
-    console.log('Response sent: Statuscode ' + statusCode + ', Message "' + message + '"');
-    console.log('-------- /Error handled --------');
-    res.status(statusCode);
-    res.json(message);
-};
-
 var dataMapper = require('./datamappers/pokemon')(mongoose);
-dataMapper.mapAllPokemon();
+dataMapper.mapAllPokemon(function(error)
+{
+    console.log(error);
+}, function()
+{
+    console.log('Mapping of all external Pokemon names done.')
+});
 
 var routes = require('./routes/index');
-var pokemon = require('./routes/pokemon')(mongoose, dataMapper, handleError);
+var pokemon = require('./routes/pokemon')(mongoose, dataMapper);
 
 // MOCKING ROUTES
 //var pokemon = require('./routes/mock/pokemonmock');

@@ -33,5 +33,5 @@ typings
 # Optional REPL history
 .node_repl_history
 
-# Database directory
-data
+# Test Database directory
+testdata

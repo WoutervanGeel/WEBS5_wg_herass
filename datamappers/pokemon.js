@@ -5,15 +5,14 @@ var Pokemon;
 
 var dataMapper =
 {
-    mapAllPokemon: function()
+    mapAllPokemon: function(errorCallback, successCallback)
     {
         Pokemon.find({}, function(error, doc)
         {
-            if(error) return console.log(error);
+            if(error) return errorCallback(error);
             
             if(doc.length == 0)
             {
-                console.log('Mapping pokemon names and external url from external API.');
                 request('http://pokeapi.co/api/v2/pokemon/?limit=811', function(error, response, body) 
                 {
                     var externalData = JSON.parse(body);
@@ -25,19 +24,17 @@ var dataMapper =
                         pokemon.externalUrl = externalData.results[i].url;
                         pokemon.save(function(error, savedPokemon)
                         {
-                            if(error) return console.log(error);
+                            if(error) errorCallback(error);
                         });
                     }
+                    successCallback();
                 });
             }
-            else
-            {
-                console.log("Mapping of pokemon names not needed.")    
-            }
+            else successCallback();
         });
     },
     
-    mapPokemon: function(pokemon, res)
+    mapPokemon: function(pokemon, errorCallback, successCallback)
     {
         var updatedData;
         async.series
@@ -86,13 +83,12 @@ var dataMapper =
                 pokemon.update(updatedData, function(error, numAffected)
                 {
                     if(error) return callback(error);
-                    console.log("Pokemon data mapped for: " + pokemon.get('name'));
                     callback();
                 });
             }
         ], function(error)
         {
-            if(error) return console.log(error);
+            if(error) return errorCallback(error);
             
             Pokemon.findOne({ name: pokemon.name }, function(err, doc)
             {
@@ -121,8 +117,7 @@ var dataMapper =
                     types: types,
                     moves: moves
                 };
-                res.status(200);
-                res.json(response);
+                successCallback(response);
             });
         });
     }

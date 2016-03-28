@@ -3,11 +3,8 @@ var router = express.Router();
 var request = require('request');
 var _ = require('underscore');
 
-var handleError;
 var Pokemon;
 var DataMapper;
-
-
 
 /* REQUEST HANDLER FUNCTIONS */
 
@@ -16,20 +13,23 @@ function getPokemon(req, res, next)
     var limit = 20;
     var offset = 0;
     
-    //If both offset and limit parameters are set.
     var query = req.query;
-    var errors = checkUrlQueryValues(query);
-    if(errors !== "")
+    //If both offset and limit parameters are set.
+    if((typeof query.limit !== typeof undefined)&&(typeof query.offset !== typeof undefined))
     {
-        err = new Error();
-        err.status = 400;
-        err.message = errors;
-        return next(err);
-    }
-    else
-    {
-        limit = query.limit;
-        offset = query.offset;
+        var errors = checkUrlQueryValues(query);
+        if(errors !== "")
+        {
+            err = new Error();
+            err.status = 400;
+            err.message = errors;
+            return next(err);
+        }
+        else
+        {
+            limit = query.limit;
+            offset = query.offset;
+        }
     }
     
     Pokemon.find(function(err, docs)
@@ -96,7 +96,16 @@ function getOnePokemon(req, res, next)
         
         if(doc.externalUrl !== "")
         {
-            DataMapper.mapPokemon(doc, res);
+            DataMapper.mapPokemon(doc, function(error)
+            {
+                error.status = 500;
+                next(error);
+            }, function(response)
+            {
+                console.log('Mapping of Pokemon data for: ' + doc.name + ' has been done.')
+                res.status(200);
+                res.json(response);
+            });
         }
         else
         {
@@ -141,32 +150,26 @@ router.get('/:name', getOnePokemon);
 function checkUrlQueryValues(query)
 {
     var errors = "";
-    //If both offset and limit parameters are set.
-    if((typeof query.limit !== typeof undefined)&&(typeof query.offset !== typeof undefined))
+    limit = parseInt(query.limit);
+    offset = parseInt(query.offset);
+    
+    //Validate parameter values.
+    if((isNaN(limit))||(limit < 1))
     {
-        limit = parseInt(query.limit);
-        offset = parseInt(query.offset);
-        
-        //Validate parameter values.
-        if((isNaN(limit))||(limit < 1))
-        {
-            errors += "Wrong parameter value input. Page parameter must be a positive number. ";
-        }
-        
-        if((isNaN(offset))||(offset < 0))
-        {
-            errors += "Wrong parameter value input. Amount parameter must be a positive number or zero.";
-        }
+        errors += "Wrong parameter value input. Page parameter must be a positive number. ";
+    }
+    
+    if((isNaN(offset))||(offset < 0))
+    {
+        errors += "Wrong parameter value input. Amount parameter must be a positive number or zero.";
     }
     return errors;
 }
 
 /* EXPORT FUNCTION */
 
-module.exports = function(mongoose, mapper, errCallback)
+module.exports = function(mongoose, mapper)
 {
-	console.log('Initializing pokemon routing module');
-    handleError = errCallback;
     DataMapper = mapper;
 	Pokemon = mongoose.model('Pokemon');
 	return router;
