@@ -4,12 +4,30 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var mongoose = require('mongoose');
+
+// Data Access Layer
+mongoose.connect('mongodb://tjleeuwe1:Avans2016@ds013559.mlab.com:13559/pokemonapi');
+// /Data Access Layer
+
+// Models
+require('./models/pokemon')(mongoose);
+// /Models
+
+var dataMapper = require('./datamappers/pokemon')(mongoose);
+dataMapper.mapAllPokemon(function(error)
+{
+    console.log(error);
+}, function()
+{
+    console.log('Mapping of all external Pokemon names done.')
+});
 
 var routes = require('./routes/index');
-//var pokemon = require('./routes/pokemon');
+var pokemon = require('./routes/pokemon')(mongoose, dataMapper);
 
 // MOCKING ROUTES
-var pokemon = require('./routes/mock/pokemonmock');
+//var pokemon = require('./routes/mock/pokemonmock');
 
 var app = express();
 
@@ -28,42 +46,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', routes);
 app.use('/pokemon', pokemon);
 
-// catch 404 and forward to error handler
+// send error in json.
+app.use(function(err, req, res, next)
+{
+    if(!err){ next(); }
+    res.status = err.status || 500;
+    res.json(err.message || 'Internal Server Error');
+});
+
+// catch 404 and send in json.
 app.use(function(req, res, next) 
 {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
+    res.status(404);
+    res.json('Not Found');
 });
-
-// error handlers
-
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') 
-{
-  app.use(function(err, req, res, next) 
-  {
-    res.status(err.status || 500);
-    res.render('error', 
-    {
-      message: err.message,
-      error: err
-    });
-  });
-}
-
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) 
-{
-  res.status(err.status || 500);
-  res.render('error', 
-  {
-    message: err.message,
-    error: {}
-  });
-});
-
 
 module.exports = app;
