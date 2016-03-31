@@ -2,6 +2,7 @@ var async = require('async');
 var request = require('request');
 var _ = require('underscore');
 var Pokemon;
+var domainURL;
 
 var dataMapper =
 {
@@ -13,20 +14,23 @@ var dataMapper =
             
             if(doc.length == 0)
             {
-                request('http://pokeapi.co/api/v2/pokemon/?limit=811', function(error, response, body) 
+                request(domainURL + '/pokemon/?limit=811', function(error, response, body) 
                 {
                     var externalData = JSON.parse(body);
-                
-                    for(var i = 0; i < 811; i++)
+                    
+                    var index = 1;
+                    _.each(externalData.results, function(result)
                     {
-                        var pokemon = new Pokemon(); //name: externalData.results[i].name
-                        pokemon.name = externalData.results[i].name;
-                        pokemon.externalUrl = externalData.results[i].url;
+                        var pokemon = new Pokemon();
+                        pokemon.name = result.name;
+                        pokemon.index = index;
+                        pokemon.isMapped = false; //Only true if fully mapped on first user access.
                         pokemon.save(function(error, savedPokemon)
                         {
                             if(error) errorCallback(error);
                         });
-                    }
+                        index++;
+                    });
                     successCallback();
                 });
             }
@@ -41,7 +45,7 @@ var dataMapper =
         ([
             function(callback)
             {
-                request(pokemon.externalUrl, function(error, response, body)
+                request(domainURL + '/pokemon/' + pokemon.name, function(error, response, body)
                 {
                     if(error) return callback(error);
                     
@@ -70,7 +74,7 @@ var dataMapper =
                     
                     updatedData = 
                     {
-                          externalUrl: "",
+                          isMapped: true,
                           types: types,
                           moves: moves
                     };
@@ -123,8 +127,9 @@ var dataMapper =
     }
 };
 
-module.exports = function(mongoose)
+module.exports = function(mongoose, domain)
 {
     Pokemon = mongoose.model('Pokemon');
+    domainURL = domain;
     return dataMapper;
 };

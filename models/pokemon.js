@@ -30,9 +30,10 @@ function init(mongoose)
     });
     var pokemonSchema = new Schema
     ({
-        externalUrl:
+        index:
         {
-            type: String
+            type: Number,
+            index: { unique: true }
         },
         name:
         {
@@ -46,6 +47,10 @@ function init(mongoose)
         moves: 
         { 
             type: [moveSchema]
+        },
+        isMapped:
+        {
+            type: Boolean
         }
     });
     

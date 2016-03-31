@@ -18,11 +18,12 @@ function getPokemon(req, res, next)
     if((typeof query.limit !== typeof undefined)&&(typeof query.offset !== typeof undefined))
     {
         var errors = checkUrlQueryValues(query);
-        if(errors !== "")
+        if(errors.length != 0)
         {
             err = new Error();
             err.status = 400;
-            err.message = errors;
+            err.message = 'Bad Request';
+            err.errors = errors;
             return next(err);
         }
         else
@@ -32,7 +33,7 @@ function getPokemon(req, res, next)
         }
     }
     
-    Pokemon.find(function(err, docs)
+    Pokemon.find({}).sort({index:'ascending'}).exec(function(err, docs)
     {
         if(err)
         {
@@ -94,7 +95,7 @@ function getOnePokemon(req, res, next)
             return next(err);
         }
         
-        if(doc.externalUrl !== "")
+        if(!doc.isMapped)
         {
             DataMapper.mapPokemon(doc, function(error)
             {
@@ -149,19 +150,19 @@ router.get('/:name', getOnePokemon);
 
 function checkUrlQueryValues(query)
 {
-    var errors = "";
+    var errors = [];
     limit = parseInt(query.limit);
     offset = parseInt(query.offset);
     
     //Validate parameter values.
     if((isNaN(limit))||(limit < 1))
     {
-        errors += "Wrong parameter value input. Page parameter must be a positive number. ";
+        errors.push("Limit parameter must be a positive number.");
     }
     
     if((isNaN(offset))||(offset < 0))
     {
-        errors += "Wrong parameter value input. Amount parameter must be a positive number or zero.";
+        errors.push("Offset parameter must be a positive number or zero.");
     }
     return errors;
 }
