@@ -7,7 +7,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 
 // Data Access Layer
-mongoose.connect('mongodb://tjleeuwe1:Avans2016@ds011860.mlab.com:11860/pokemonapitest');
+mongoose.connect('mongodb://tjleeuwe1:Avans2016@ds011860.mlab.com:11860/pokemonapi');
 // /Data Access Layer
 
 // Models

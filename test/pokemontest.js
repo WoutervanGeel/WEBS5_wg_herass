@@ -70,14 +70,14 @@ describe('Testing /pokemon route', function()
                     {
                         if(err) return callback(err);
                         
-                        expect(res.body).to.have.property('count').and.not.be.undefined;
-                        expect(res.body).to.have.property('results').and.not.be.undefined;
+                        expect(res.body).to.have.property('count');
+                        expect(res.body).to.have.property('results');
                         expect(res.body.results).to.be.an('array');
                         
                         var actualCounted = 0;
                         _.each(res.body.results, function(result)
                         {
-                            expect(result).to.have.property('name').and.not.be.undefined;
+                            expect(result).to.have.property('name');
                             expect(result.name).to.be.an('string');
                             expect(result.name).to.equal(databasePokemon[actualCounted].name);
                             actualCounted++;
