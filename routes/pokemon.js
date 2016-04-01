@@ -10,6 +10,8 @@ var DataMapper;
 
 function getPokemon(req, res, next)
 {
+    console.log("HOI");
+    
     var limit = 20;
     var offset = 0;
     
